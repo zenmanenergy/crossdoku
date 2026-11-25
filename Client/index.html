@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crossdoku</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="loading" class="center-screen">Loading…</div>
+
+<!-- Login -->
+<div id="loginScreen" class="center-screen hidden">
+	<form id="loginForm" class="card login">
+		<h1 class="appName">Crossdoku</h1>
+		<p class="sub">Crossword clues meet letter sudoku</p>
+		<label for="password">Password</label>
+		<input id="password" type="password" autocomplete="current-password" required>
+		<button type="submit" class="primary">Log in</button>
+		<p id="loginError" class="error"></p>
+	</form>
+</div>
+
+<!-- Game -->
+<div id="gameScreen" class="wrap hidden">
+	<header>
+		<h1 class="appName">Crossdoku</h1>
+		<div class="headerTools">
+			<button id="newBtn" class="primary">New puzzle</button>
+			<button id="printBtn">Print</button>
+			<button id="logoutBtn" class="link">Log out</button>
+		</div>
+	</header>
+
+	<div class="pickerRow">
+		<select id="puzzleSelect" aria-label="Choose a puzzle"></select>
+		<button id="deleteBtn" class="small hidden">Delete</button>
+	</div>
+
+	<div id="newPanel" class="card newPanel hidden">
+		<h2>Make a new puzzle</h2>
+		<div class="field">
+			<span>Level</span>
+			<div class="seg" id="levelSeg">
+				<button data-level="Easy">Easy</button>
+				<button data-level="Medium" class="on">Medium</button>
+				<button data-level="Hard">Hard</button>
+			</div>
+		</div>
+		<div class="field">
+			<label for="theme">Theme (optional)</label>
+			<input id="theme" maxlength="60" placeholder="e.g. chemistry, ocean, robots">
+		</div>
+		<div class="row">
+			<button id="generateBtn" class="primary">Generate</button>
+			<button id="cancelNewBtn">Cancel</button>
+		</div>
+		<p id="genStatus" class="status"></p>
+	</div>
+
+	<div class="main">
+		<div class="left">
+			<div class="printTitle" id="printTitle"></div>
+			<div class="board" id="board"></div>
+			<div class="cluebar" id="cluebar">
+				<span id="clueText" class="muted">Tap a shaded cell or a clue to start.</span>
+				<div class="nav"><button id="prevClue" aria-label="Previous clue">‹</button><button id="nextClue" aria-label="Next clue">›</button></div>
+			</div>
+			<div class="keys" id="keys"></div>
+			<div class="tools">
+				<button id="notesBtn">Notes</button>
+				<button id="eraseBtn">Erase</button>
+				<button id="hintBtn">Hint</button>
+				<button id="clashBtn">Clashes</button>
+				<button id="resetBtn">Reset</button>
+			</div>
+			<div class="confirm" id="confirm"><span id="confirmText">Clear this puzzle?</span><button id="confirmYes">Yes</button><button id="confirmNo">Cancel</button></div>
+			<p class="status" id="status"></p>
+		</div>
+		<div class="clues">
+			<p class="letterSet">Letters: <b id="letterSet"></b></p>
+			<h2>Across</h2><ol id="across"></ol>
+			<h2>Down</h2><ol id="down"></ol>
+			<div class="how card">
+				<p><b>Sudoku rules:</b> every row, column and 3×3 box uses each of the 9 letters exactly once.</p>
+				<p><b>Crossword rules:</b> shaded cells spell the answers to the clues. Solve clues to place letters, then use sudoku logic for the rest.</p>
+				<p>Tap a crossing cell twice to switch between Across and Down. Nothing tells you a letter is wrong, so trust your logic. Hint only fills an empty cell. Clashes (off by default) marks a letter that appears twice in a row, column or box.</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="win" id="win"><div class="card box"><h3>Solved!</h3><p id="winText"></p><button id="winNew" class="primary">New puzzle</button> <button id="winClose">Close</button></div></div>
+
+<script src="js/SuperFetch.js"></script>
+<script src="js/puzzles.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

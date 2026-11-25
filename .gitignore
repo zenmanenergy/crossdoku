@@ -1,0 +1,5 @@
+Server/.env
+__pycache__/
+Server/venv/
+*.pyc
+.pytest_cache/

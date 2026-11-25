@@ -1,0 +1,15 @@
+# Copy to /etc/systemd/system/crossdoku.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now crossdoku
+# One worker on purpose: the login throttle and hourly puzzle cap live in memory.
+[Unit]
+Description=Crossdoku API
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/crossdoku/Server
+ExecStart=/opt/crossdoku/Server/venv/bin/gunicorn -w 1 --threads 4 -t 150 -b 127.0.0.1:9010 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
