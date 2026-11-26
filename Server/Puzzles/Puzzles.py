@@ -4,6 +4,7 @@ from _Lib.Debugger import Debugger
 from Auth.Session import LoginRequired
 from Puzzles.GeneratePuzzle import GeneratePuzzle, OverHourlyLimit
 from Puzzles.PuzzleStore import SavePuzzle, ListPuzzles, DeletePuzzle
+from Scores.ScoreStore import DeleteBoard
 
 Puzzles = Blueprint("Puzzles", __name__)
 
@@ -44,6 +45,7 @@ def Delete():
 			return jsonify({"ok": False, "error": "Bad puzzle id."}), 400
 		if not found:
 			return jsonify({"ok": False, "error": "Puzzle not found."}), 404
+		DeleteBoard(data.get("id"))  # its leaderboard goes with it
 		return jsonify({"ok": True})
 	except Exception as e:
 		return Debugger(e)

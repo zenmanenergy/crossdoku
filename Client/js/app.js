@@ -22,7 +22,22 @@ function PuzzleName(p) {
 // ---------- game state ----------
 let P = null, entries = [], givens = new Set(), state = [], notes = [], hinted = new Set();
 let sel = -1, dir = "A", notesMode = false, showClashes = store.get("crossdoku-clashes") === true;
-let startTime = 0, confirmAction = null;
+let confirmAction = null;
+
+// ---------- clock ----------
+// Counts only while the puzzle is on screen, starting at the first tap or key.
+// It pauses when you switch tabs or puzzles and stops for good once solved.
+let elapsed = 0, running = false, runFrom = 0, done = false, posted = false;
+function Elapsed() { return elapsed + (runFrom ? (Date.now() - runFrom) / 1000 : 0); }
+function Touch() { if (!done && !running) { running = true; runFrom = document.hidden ? 0 : Date.now(); } }
+function PauseClock() { if (runFrom) { elapsed = Elapsed(); runFrom = 0; } }
+function ResumeClock() { if (running && !done && !runFrom) runFrom = Date.now(); }
+function Fmt(secs) {
+	secs = Math.floor(secs);
+	const h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60, s = String(secs % 60).padStart(2, "0");
+	return h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
+}
+function ShowClock() { $("timer").textContent = Fmt(Elapsed()); $("timer").classList.toggle("done", done); }
 
 function BoxOf(i) { const r = Math.floor(i / 9), c = i % 9; return Math.floor(r / 3) * 3 + Math.floor(c / 3); }
 const PEERS = Array.from({ length: 81 }, (_, i) => {
@@ -63,6 +78,7 @@ function NextPuzzle() {
 }
 
 function Load(id) {
+	if (P) { PauseClock(); Save(); }  // keep the time on the puzzle we're leaving
 	const all = AllPuzzles();
 	P = all.find(p => p.id === id) || all[0];
 	store.set("crossdoku-last", P.id);
@@ -78,7 +94,11 @@ function Load(id) {
 		(saved.notes || []).forEach((n, j) => notes[j] = new Set(n));
 		hinted = new Set(saved.hinted || []);
 	}
-	startTime = Date.now();
+	elapsed = (saved && saved.secs) || 0;
+	done = !!(saved && saved.done);
+	posted = !!(saved && saved.posted);
+	running = false; runFrom = 0;
+	ShowClock();
 	sel = -1;
 	$("status").textContent = "";
 	$("letterSet").textContent = P.letters;
@@ -88,7 +108,9 @@ function Load(id) {
 	$("clueText").className = "muted";
 }
 
-function Save() { store.set("crossdoku-" + P.id, { state, notes: notes.map(s => [...s]), hinted: [...hinted] }); }
+function Save() {
+	store.set("crossdoku-" + P.id, { state, notes: notes.map(s => [...s]), hinted: [...hinted], secs: Math.round(Elapsed()), done, posted });
+}
 function EntryAt(i, d) { return entries.find(e => e.dir === d && e.cells.includes(i)); }
 
 function BuildBoard() {
@@ -136,6 +158,7 @@ function BringBoardIntoView() {
 }
 
 function Tap(i) {
+	Touch();
 	const other = dir === "A" ? "D" : "A";
 	if (i === sel) { if (EntryAt(i, other)) dir = other; }
 	else { sel = i; if (!EntryAt(i, dir) && EntryAt(i, other)) dir = other; }
@@ -145,6 +168,7 @@ function Locked(i) { return givens.has(i) || hinted.has(i); }
 
 function Input(L) {
 	if (sel < 0 || Locked(sel)) return;
+	Touch();
 	if (notesMode) {
 		const n = notes[sel];
 		n.has(L) ? n.delete(L) : n.add(L);
@@ -244,6 +268,7 @@ function MoveClue(step) {
 
 // Hint fills an EMPTY cell only, so it can never reveal that a letter is wrong.
 function Hint() {
+	Touch();
 	let i = sel;
 	if (i < 0 || state[i]) {
 		const empty = [...Array(81).keys()].filter(j => !state[j]);
@@ -266,10 +291,72 @@ function CheckDone() {
 	const solved = store.get("crossdoku-solved") || {};
 	solved[P.id] = true;
 	store.set("crossdoku-solved", solved);
-	const mins = Math.max(1, Math.round((Date.now() - startTime) / 60000));
-	$("winText").textContent = `${PuzzleName(P)} complete` + (hinted.size ? ` with ${hinted.size} hint${hinted.size > 1 ? "s" : ""}.` : ", no hints!") + ` About ${mins} min this session.`;
-	$("win").classList.add("show");
+	if (!done) {
+		PauseClock();
+		done = true; running = false;
+		Save(); ShowClock();
+	}
 	BuildPicker();
+	OpenScores(true);
+}
+
+// ---------- leaderboard ----------
+function HintText(n) { return n ? `${n} hint${n > 1 ? "s" : ""}` : "no hints"; }
+
+function OpenScores(justSolved) {
+	$("winTitle").textContent = justSolved ? "Solved!" : "Leaderboard";
+	$("winText").textContent = done
+		? `${PuzzleName(P)} · ${Fmt(Elapsed())} with ${HintText(hinted.size)}`
+		: PuzzleName(P);
+	$("postForm").classList.toggle("hidden", !done || posted);
+	$("playerName").value = store.get("crossdoku-name") || "";
+	$("postStatus").textContent = done && posted ? "Your score is posted." : "";
+	$("winNext").classList.toggle("hidden", !justSolved);
+	$("win").classList.add("show");
+	ShowLeaders(null);
+	SuperFetch("api/scores/" + encodeURIComponent(P.id))
+		.then(d => ShowLeaders(d.scores))
+		.catch(() => { $("leaders").innerHTML = '<li class="muted">The leaderboard isn\'t available right now.</li>'; });
+}
+
+function ShowLeaders(rows) {
+	const ol = $("leaders");
+	ol.innerHTML = "";
+	if (rows === null) { ol.innerHTML = '<li class="muted">Loading…</li>'; return; }
+	if (!rows.length) { ol.innerHTML = '<li class="muted">No scores yet. Be the first!</li>'; return; }
+	const me = (store.get("crossdoku-name") || "").toLowerCase();
+	const myRank = rows.findIndex(r => r.name.toLowerCase() === me);
+	rows.forEach((r, k) => {
+		if (k >= 10 && k !== myRank) return;  // top 10, plus your own row if you're further down
+		const li = document.createElement("li");
+		if (k === myRank) li.className = "me";
+		li.innerHTML = '<span class="rk"></span><span class="nm"></span><span class="tm"></span>';
+		li.querySelector(".rk").textContent = k + 1;
+		li.querySelector(".nm").textContent = r.name;  // names come from players: textContent only
+		li.querySelector(".tm").textContent = Fmt(r.seconds) + (r.hints ? ` +${r.hints} hint${r.hints > 1 ? "s" : ""}` : "");
+		li.title = `${Fmt(r.seconds)} with ${HintText(r.hints)}`;
+		ol.appendChild(li);
+	});
+}
+
+async function PostScore(ev) {
+	ev.preventDefault();
+	const name = $("playerName").value.trim();
+	if (!name) { $("postStatus").textContent = "Type a name first."; return; }
+	$("postBtn").disabled = true;
+	try {
+		const d = await SuperFetch("api/scores", { method: "POST", body: {
+			puzzle: P.id, name, seconds: Math.round(Elapsed()), hints: hinted.size, grid: state.join("") } });
+		store.set("crossdoku-name", d.name);
+		posted = true; Save();
+		$("postForm").classList.add("hidden");
+		$("postStatus").textContent = d.improved ? `Posted. You're #${d.rank}.` : `Your earlier score was better, so it stays. You're #${d.rank}.`;
+		ShowLeaders(d.scores);
+	} catch (e) {
+		$("postStatus").textContent = e.message;
+	} finally {
+		$("postBtn").disabled = false;
+	}
 }
 
 function Confirm(text, action) {
@@ -295,13 +382,15 @@ async function Start() {
 }
 
 $("printBtn").onclick = () => window.print();
+$("scoresBtn").onclick = () => OpenScores(false);
+$("postForm").onsubmit = PostScore;
 $("puzzleSelect").onchange = ev => Load(ev.target.value);
 $("nextBtn").onclick = NextPuzzle;
 $("notesBtn").onclick = () => { notesMode = !notesMode; Render(); };
 $("eraseBtn").onclick = Erase;
 $("hintBtn").onclick = Hint;
 $("clashBtn").onclick = () => { showClashes = !showClashes; store.set("crossdoku-clashes", showClashes); Render(); };
-$("resetBtn").onclick = () => Confirm("Clear this puzzle?", () => { store.del("crossdoku-" + P.id); Load(P.id); });
+$("resetBtn").onclick = () => Confirm("Clear this puzzle and its time?", () => { const id = P.id; P = null; store.del("crossdoku-" + id); Load(id); });
 $("confirmYes").onclick = () => { $("confirm").classList.remove("show"); if (confirmAction) confirmAction(); confirmAction = null; };
 $("confirmNo").onclick = () => { $("confirm").classList.remove("show"); confirmAction = null; };
 $("prevClue").onclick = () => MoveClue(-1);
@@ -333,5 +422,14 @@ document.addEventListener("keydown", ev => {
 	}
 	Render();
 });
+
+// Clock: tick the display, pause while the tab is hidden, save now and then in case the tab is closed.
+setInterval(() => { if (P) ShowClock(); }, 1000);
+setInterval(() => { if (P && runFrom) Save(); }, 15000);
+document.addEventListener("visibilitychange", () => {
+	if (!P) return;
+	if (document.hidden) { PauseClock(); Save(); } else ResumeClock();
+});
+window.addEventListener("pagehide", () => { if (P) Save(); });
 
 Start();

@@ -33,9 +33,9 @@ if [ ! -f .env ]; then
 fi
 
 echo "==> Puzzle storage"
-# Shared puzzles are saved as JSON files here. The service runs as www-data, so it must own this folder.
+# Shared puzzles and leaderboards are saved as JSON files here. The service runs as www-data, so it must own this folder.
 # (If you set DATA_DIR in .env to somewhere else, create and chown that folder yourself.)
-mkdir -p data/puzzles
+mkdir -p data/puzzles data/scores
 chown -R www-data:www-data data
 
 echo "==> Tests"

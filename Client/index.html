@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=20261126a">
+<link rel="stylesheet" href="css/app.css?v=20261126b">
 </head>
 <body>
 <div id="loading" class="center-screen">Loading…</div>
@@ -17,12 +17,14 @@
 	<header>
 		<h1 class="appName">Crossdoku</h1>
 		<div class="headerTools">
+			<button id="scoresBtn">Scores</button>
 			<button id="printBtn">Print</button>
 		</div>
 	</header>
 
 	<div class="pickerRow">
 		<select id="puzzleSelect" aria-label="Choose a puzzle"></select>
+		<span id="timer" class="timer" title="Time on this puzzle (pauses when you leave the page)">0:00</span>
 		<button id="nextBtn" class="small">Next</button>
 	</div>
 
@@ -58,10 +60,21 @@
 	</div>
 </div>
 
-<div class="win" id="win"><div class="card box"><h3>Solved!</h3><p id="winText"></p><button id="winNext" class="primary">Next puzzle</button> <button id="winClose">Close</button></div></div>
+<div class="win" id="win"><div class="card box">
+	<h3 id="winTitle">Solved!</h3>
+	<p id="winText"></p>
+	<form id="postForm" class="postForm hidden">
+		<input id="playerName" maxlength="20" placeholder="Your name" autocomplete="nickname" aria-label="Your name">
+		<button type="submit" class="primary" id="postBtn">Post score</button>
+	</form>
+	<p id="postStatus" class="muted small"></p>
+	<ol id="leaders" class="leaders"></ol>
+	<p class="muted small">Ranked by time, plus 1 minute for each hint.</p>
+	<div class="winButtons"><button id="winNext" class="primary">Next puzzle</button> <button id="winClose">Close</button></div>
+</div></div>
 
-<script src="js/SuperFetch.js?v=20261126a"></script>
-<script src="js/puzzles.js?v=20261126a"></script>
-<script src="js/app.js?v=20261126a"></script>
+<script src="js/SuperFetch.js?v=20261126b"></script>
+<script src="js/puzzles.js?v=20261126b"></script>
+<script src="js/app.js?v=20261126b"></script>
 </body>
 </html>

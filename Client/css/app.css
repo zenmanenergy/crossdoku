@@ -89,8 +89,24 @@ h1 { font-family: Fraunces, serif; font-weight: 800; font-size: 2rem; margin: 0;
 
 .win { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 5; }
 .win.show { display: flex; }
-.win .box { padding: 22px 24px; max-width: 340px; text-align: center; }
+.win .box { padding: 20px 22px; width: 100%; max-width: 360px; max-height: calc(100svh - 40px); overflow-y: auto; text-align: center; }
 .win h3 { font-family: Fraunces, serif; font-size: 1.6rem; margin: 0 0 6px; }
+.postForm { display: flex; gap: 6px; margin: 10px 0 0; }
+.postForm input { flex: 1; min-width: 0; }
+.postForm button { white-space: nowrap; }
+.leaders { list-style: none; padding: 0; margin: 10px 0 4px; text-align: left; }
+.leaders li { display: flex; gap: 10px; padding: 6px 8px; border-radius: 8px; font-variant-numeric: tabular-nums; }
+.leaders li:nth-child(odd) { background: var(--word); }
+.leaders li.me { background: var(--wordon); font-weight: 700; }
+.leaders .rk { min-width: 1.6rem; color: var(--muted); }
+.leaders .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaders .tm { white-space: nowrap; }
+.winButtons { margin-top: 12px; }
+.timer { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--muted); min-width: 3.2rem; text-align: right; }
+.timer.done { color: var(--good); }
+.boardCard { padding: 10px 12px; margin: 8px 0; }
+.boardCard h3 { font-size: 1rem; margin: 0 0 6px; }
+.boardCard .leaders li { align-items: center; }
 .printTitle { display: none; }
 
 /* ---- phones ---- */

@@ -1,7 +1,7 @@
-// Crossdoku admin page: log in, make puzzles, delete puzzles.
+// Crossdoku admin page: log in, make puzzles, delete puzzles, remove leaderboard scores.
 // Lives at /crossdoku/admin/, so API paths start with ../
 const $ = id => document.getElementById(id);
-let level = "Medium", pendingDelete = null;
+let level = "Medium", pendingDelete = null, puzzleNames = {};
 
 function Show(id) {
 	["loading", "loginScreen", "adminScreen"].forEach(s => $(s).classList.toggle("hidden", s !== id));
@@ -17,6 +17,9 @@ async function LoadList() {
 	const list = $("list");
 	try {
 		const puzzles = (await SuperFetch("../api/puzzles")).puzzles || [];
+		puzzleNames = {};
+		puzzles.forEach(p => puzzleNames[p.id] = Describe(p));
+		LoadBoards();
 		$("count").textContent = `(${puzzles.length})`;
 		list.innerHTML = "";
 		if (!puzzles.length) {
@@ -41,6 +44,64 @@ async function LoadList() {
 		li.className = "error";
 		li.textContent = e.message;
 		list.appendChild(li);
+	}
+}
+
+function Fmt(secs) {
+	const m = Math.floor(secs / 60), s = String(secs % 60).padStart(2, "0");
+	return `${m}:${s}`;
+}
+
+async function LoadBoards() {
+	const box = $("boards");
+	try {
+		const boards = (await SuperFetch("../api/scores-all")).boards || {};
+		box.innerHTML = "";
+		const ids = Object.keys(boards);
+		if (!ids.length) { box.innerHTML = '<p class="muted">No scores posted yet.</p>'; return; }
+		ids.forEach(id => {
+			const card = document.createElement("div");
+			card.className = "card boardCard";
+			card.innerHTML = '<h3></h3><ol class="leaders"></ol>';
+			card.querySelector("h3").textContent = puzzleNames[id] || `Starter puzzle ${id}`;
+			const ol = card.querySelector("ol");
+			boards[id].forEach((r, k) => {
+				const li = document.createElement("li");
+				li.innerHTML = '<span class="rk"></span><span class="nm"></span><span class="tm"></span><button class="small del">Remove</button>';
+				li.querySelector(".rk").textContent = k + 1;
+				li.querySelector(".nm").textContent = r.name;  // player-typed: textContent only
+				li.querySelector(".tm").textContent = Fmt(r.seconds) + (r.hints ? ` +${r.hints} hint${r.hints > 1 ? "s" : ""}` : "");
+				const del = li.querySelector(".del");
+				del.onclick = () => RemoveScore(id, r.name, del);
+				ol.appendChild(li);
+			});
+			box.appendChild(card);
+		});
+	} catch (e) {
+		if (e.status === 401) return Show("loginScreen");
+		box.textContent = e.message;
+	}
+}
+
+// Two taps, like Delete: the first turns the button into "Really?".
+async function RemoveScore(id, name, btn) {
+	const key = id + "|" + name;
+	if (pendingDelete !== key) {
+		pendingDelete = key;
+		btn.textContent = "Really?";
+		btn.classList.add("danger");
+		setTimeout(() => { if (pendingDelete === key) { pendingDelete = null; btn.textContent = "Remove"; btn.classList.remove("danger"); } }, 4000);
+		return;
+	}
+	pendingDelete = null;
+	btn.disabled = true;
+	try {
+		await SuperFetch("../api/scores/delete", { method: "POST", body: { puzzle: id, name } });
+		LoadBoards();
+	} catch (e) {
+		if (e.status === 401) return Show("loginScreen");
+		btn.disabled = false;
+		btn.textContent = e.message;
 	}
 }
 

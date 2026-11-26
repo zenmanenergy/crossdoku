@@ -6,10 +6,12 @@ LoadEnv()
 
 from Auth.Auth import Auth  # noqa: E402
 from Puzzles.Puzzles import Puzzles  # noqa: E402
+from Scores.Scores import Scores  # noqa: E402
 
 app = Flask(__name__)
 app.register_blueprint(Auth)
 app.register_blueprint(Puzzles)
+app.register_blueprint(Scores)
 
 
 @app.route("/api/health", methods=["GET"])
