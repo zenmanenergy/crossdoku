@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Crossdoku Admin</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div id="loading" class="center-screen">Loading…</div>
+
+<div id="loginScreen" class="center-screen hidden">
+	<form id="loginForm" class="card login">
+		<h1>Crossdoku Admin</h1>
+		<p class="sub">Log in to make and delete puzzles.</p>
+		<label for="password">Password</label>
+		<input id="password" type="password" autocomplete="current-password" required>
+		<button type="submit" class="primary">Log in</button>
+		<p id="loginError" class="error"></p>
+		<a class="backLink" href="../">Back to the game</a>
+	</form>
+</div>
+
+<div id="adminScreen" class="wrap adminWrap hidden">
+	<header>
+		<h1>Crossdoku Admin</h1>
+		<div class="headerTools">
+			<a class="backLink" href="../">Play</a>
+			<button id="logoutBtn" class="link">Log out</button>
+		</div>
+	</header>
+
+	<div class="card newPanel">
+		<h2>Make a new puzzle</h2>
+		<div class="field">
+			<span>Level</span>
+			<div class="seg" id="levelSeg">
+				<button data-level="Easy">Easy</button>
+				<button data-level="Medium" class="on">Medium</button>
+				<button data-level="Hard">Hard</button>
+			</div>
+		</div>
+		<div class="field">
+			<label for="theme">Theme (optional)</label>
+			<input id="theme" maxlength="60" placeholder="e.g. chemistry, ocean, robots">
+		</div>
+		<div class="row">
+			<button id="generateBtn" class="primary">Generate</button>
+		</div>
+		<p id="genStatus" class="status"></p>
+	</div>
+
+	<h2 class="listTitle">Shared puzzles <span id="count" class="muted"></span></h2>
+	<p class="muted small">Everyone who opens the game sees these, newest first. The 9 starter puzzles are built in and aren't listed here.</p>
+	<ul id="list" class="adminList"></ul>
+</div>
+
+<script src="../js/SuperFetch.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>

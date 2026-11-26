@@ -3,3 +3,4 @@ __pycache__/
 Server/venv/
 *.pyc
 .pytest_cache/
+Server/data/

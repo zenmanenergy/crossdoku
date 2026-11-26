@@ -18,14 +18,19 @@ def Health():
 
 
 if __name__ == "__main__":
-	# Local testing only: python app.py, then open http://localhost:9010
+	# Local testing only: python app.py, then open http://localhost:9010 (admin page: /admin/)
 	import os
 	from flask import send_from_directory
 	clientDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Client")
 
 	@app.route("/")
 	@app.route("/<path:path>")
-	def Static(path="index.html"):
+	def Static(path=""):
+		if path == "" or path.endswith("/"):
+			path += "index.html"
+		elif os.path.isdir(os.path.join(clientDir, path)):
+			from flask import redirect
+			return redirect("/" + path + "/")
 		return send_from_directory(clientDir, path)
 
 	app.run(port=9010, debug=True)

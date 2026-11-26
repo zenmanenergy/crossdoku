@@ -5,33 +5,39 @@ A 9x9 letter sudoku where some row and column runs are crossword answers. Solve 
 ## Structure
 
 - Client/ - static files served by nginx. Plain HTML, CSS and JavaScript, no build step.
-  - index.html, css/app.css, js/app.js (game), js/SuperFetch.js (all API calls), js/puzzles.js (9 starter puzzles)
+  - index.html + js/app.js: the public game. No login. Lists shared puzzles from the server plus the built-in starters.
+  - admin/index.html + js/admin.js: /crossdoku/admin/ - password login, make puzzles, delete puzzles.
+  - css/app.css, js/SuperFetch.js (all API calls), js/puzzles.js (9 starter puzzles)
   - APP_NAME at the top of js/app.js renames the app on screen.
 - Server/ - small Flask API behind gunicorn, proxied by nginx at /api/.
   - app.py registers the routes.
   - Auth/Auth.py (routes) and Auth/Session.py (password check, signed cookie, login throttle)
-  - Puzzles/Puzzles.py (route), Puzzles/GeneratePuzzle.py (Claude prompt), Puzzles/Generator.py (grid builder)
+  - Puzzles/Puzzles.py (routes), Puzzles/GeneratePuzzle.py (Claude prompt), Puzzles/Generator.py (grid builder), Puzzles/PuzzleStore.py (JSON file storage)
   - _Lib/Env.py (.env loader), _Lib/Claude.py (Messages API via the standard library), _Lib/Debugger.py
   - Tests/ - generator and route tests (Claude is faked in tests)
 - deploy.sh - pull, install, test, restart, health check.
 
 Hosted at https://games.secretagents.com/crossdoku/ (code in /opt/games/crossdoku). nginx (docs/nginx-games.conf) serves Client/ at /crossdoku/ and proxies /crossdoku/api/ to gunicorn on port 9010. Client API paths are relative so the path prefix needs no code changes.
 
-No database. Generated puzzles and progress live in each browser's localStorage.
+No database. Shared puzzles are JSON files in Server/data/puzzles (or DATA_DIR/puzzles), one per puzzle, owned by www-data; deploy.sh creates the folder. Each player's progress lives in their own browser's localStorage.
 
 ## API
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| POST | /api/login | body {"password"}; sets HttpOnly signed cookie (30 days). POST because it carries the password. 10 failures per IP in 15 min locks out for 15 min. |
-| GET | /api/session | {"loggedIn": true/false} |
-| GET | /api/logout | clears the cookie |
-| GET | /api/puzzles/generate?level=Easy/Medium/Hard&theme=... | login required; capped at GENERATE_PER_HOUR |
-| GET | /api/health | for deploy.sh |
+| Method | Path | Who | Notes |
+| --- | --- | --- | --- |
+| GET | /api/puzzles | anyone | all shared puzzles, newest first |
+| POST | /api/login | anyone | body {"password"}; sets HttpOnly signed cookie (30 days). 10 failures per IP in 15 min locks out for 15 min. |
+| GET | /api/session | anyone | {"loggedIn": true/false} |
+| GET | /api/logout | anyone | clears the cookie |
+| POST | /api/puzzles/generate | admin | body {"level", "theme"}; makes and saves a puzzle; capped at GENERATE_PER_HOUR |
+| POST | /api/puzzles/delete | admin | body {"id"}; ids must look like G + 10 hex digits (they become file names) |
+| GET | /api/health | anyone | for deploy.sh |
+
+Routes that change shared data are POST; reads are GET.
 
 ## Security level
 
-Deliberately light: one shared password from Server/.env, a cookie signed with SECRET_KEY, a login throttle and an hourly generation cap. The goal is only to stop strangers spending the Claude API budget. The static Client files themselves are public (the login screen just hides them); the API is what is protected. The Claude API key never leaves the server.
+Deliberately light. Playing is open to everyone. Only making and deleting puzzles needs the one admin password from Server/.env, which sets a cookie signed with SECRET_KEY. Add a login throttle and an hourly generation cap, and the goal is met: strangers can't spend the Claude API budget. The admin page itself is a public file; the API behind it is what's protected. The Claude API key never leaves the server.
 
 ## Puzzle generation
 

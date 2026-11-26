@@ -9,8 +9,9 @@ const store = {
 };
 
 // ---------- puzzle list ----------
-function MyPuzzles() { return store.get("crossdoku-mine") || []; }
-function AllPuzzles() { return [...MyPuzzles(), ...BUILT_IN_PUZZLES]; }
+// SHARED_PUZZLES come from the server (made on the admin page); BUILT_IN_PUZZLES ship with the client.
+let SHARED_PUZZLES = [];
+function AllPuzzles() { return [...SHARED_PUZZLES, ...BUILT_IN_PUZZLES]; }
 function PuzzleName(p) {
 	if (p.name) return p.name;
 	const d = new Date((p.created || 0) * 1000);
@@ -34,7 +35,7 @@ function BuildPicker() {
 	const s = $("puzzleSelect");
 	s.innerHTML = "";
 	const solved = store.get("crossdoku-solved") || {};
-	const groups = [["My puzzles", MyPuzzles()], ["Starter puzzles", BUILT_IN_PUZZLES]];
+	const groups = [["New puzzles", SHARED_PUZZLES], ["Starter puzzles", BUILT_IN_PUZZLES]];
 	for (const [label, list] of groups) {
 		if (!list.length) continue;
 		const g = document.createElement("optgroup");
@@ -48,7 +49,17 @@ function BuildPicker() {
 		s.appendChild(g);
 	}
 	if (P) s.value = P.id;
-	$("deleteBtn").classList.toggle("hidden", !P || !MyPuzzles().some(m => m.id === P.id));
+}
+
+function NextPuzzle() {
+	// The next puzzle in the list that isn't solved yet (wraps around).
+	const all = AllPuzzles(), solved = store.get("crossdoku-solved") || {};
+	const k = all.findIndex(p => p.id === P.id);
+	for (let step = 1; step <= all.length; step++) {
+		const p = all[(k + step) % all.length];
+		if (!solved[p.id]) return Load(p.id);
+	}
+	Load(all[(k + 1) % all.length].id);
 }
 
 function Load(id) {
@@ -263,82 +274,25 @@ function Confirm(text, action) {
 	$("confirm").classList.add("show");
 }
 
-// ---------- new puzzles ----------
-let level = "Medium";
-async function Generate() {
-	const btn = $("generateBtn");
-	btn.disabled = true;
-	$("genStatus").textContent = "Claude is picking letters and writing clues, then the server builds the grid. This takes about 30 to 60 seconds.";
-	try {
-		const theme = $("theme").value.trim();
-		const data = await SuperFetch(`api/puzzles/generate?level=${encodeURIComponent(level)}&theme=${encodeURIComponent(theme)}`);
-		const mine = MyPuzzles();
-		mine.unshift(data.puzzle);
-		store.set("crossdoku-mine", mine.slice(0, 100));
-		$("newPanel").classList.add("hidden");
-		$("genStatus").textContent = "";
-		Load(data.puzzle.id);
-	} catch (e) {
-		if (e.status === 401) { ShowLogin(); return; }
-		$("genStatus").textContent = e.message;
-	} finally {
-		btn.disabled = false;
-	}
-}
-
-// ---------- screens ----------
-function ShowLogin() {
-	$("loading").classList.add("hidden");
-	$("gameScreen").classList.add("hidden");
-	$("loginScreen").classList.remove("hidden");
-	$("password").focus();
-}
-function ShowGame() {
-	$("loading").classList.add("hidden");
-	$("loginScreen").classList.add("hidden");
-	$("gameScreen").classList.remove("hidden");
-	Load(store.get("crossdoku-last"));
-}
-
+// ---------- start ----------
 async function Start() {
 	document.title = APP_NAME;
 	document.querySelectorAll(".appName").forEach(h => h.textContent = APP_NAME);
 	try {
-		const data = await SuperFetch("api/session");
-		data.loggedIn ? ShowGame() : ShowLogin();
+		SHARED_PUZZLES = (await SuperFetch("api/puzzles")).puzzles || [];
 	} catch (e) {
-		$("loading").textContent = e.message;
+		SHARED_PUZZLES = []; // server down: the starter puzzles still work
 	}
+	$("loading").classList.add("hidden");
+	$("gameScreen").classList.remove("hidden");
+	// ../#G123... from the admin page opens that puzzle directly.
+	const wanted = decodeURIComponent(location.hash.slice(1));
+	Load(AllPuzzles().some(p => p.id === wanted) ? wanted : store.get("crossdoku-last"));
 }
 
-$("loginForm").onsubmit = async ev => {
-	ev.preventDefault();
-	$("loginError").textContent = "";
-	try {
-		await SuperFetch("api/login", { method: "POST", body: { password: $("password").value } });
-		$("password").value = "";
-		ShowGame();
-	} catch (e) {
-		$("loginError").textContent = e.message;
-	}
-};
-$("logoutBtn").onclick = async () => { try { await SuperFetch("api/logout"); } catch (e) { /* ignore */ } ShowLogin(); };
-$("newBtn").onclick = () => $("newPanel").classList.toggle("hidden");
-$("cancelNewBtn").onclick = () => $("newPanel").classList.add("hidden");
-$("generateBtn").onclick = Generate;
-$("levelSeg").onclick = ev => {
-	const b = ev.target.closest("button");
-	if (!b) return;
-	level = b.dataset.level;
-	[...$("levelSeg").children].forEach(x => x.classList.toggle("on", x === b));
-};
 $("printBtn").onclick = () => window.print();
 $("puzzleSelect").onchange = ev => Load(ev.target.value);
-$("deleteBtn").onclick = () => Confirm("Delete this puzzle?", () => {
-	store.set("crossdoku-mine", MyPuzzles().filter(m => m.id !== P.id));
-	store.del("crossdoku-" + P.id);
-	Load(null);
-});
+$("nextBtn").onclick = NextPuzzle;
 $("notesBtn").onclick = () => { notesMode = !notesMode; Render(); };
 $("eraseBtn").onclick = Erase;
 $("hintBtn").onclick = Hint;
@@ -349,7 +303,7 @@ $("confirmNo").onclick = () => { $("confirm").classList.remove("show"); confirmA
 $("prevClue").onclick = () => MoveClue(-1);
 $("nextClue").onclick = () => MoveClue(1);
 $("winClose").onclick = () => $("win").classList.remove("show");
-$("winNew").onclick = () => { $("win").classList.remove("show"); $("newPanel").classList.remove("hidden"); };
+$("winNext").onclick = () => { $("win").classList.remove("show"); NextPuzzle(); };
 
 document.addEventListener("keydown", ev => {
 	if (!P || $("gameScreen").classList.contains("hidden")) return;

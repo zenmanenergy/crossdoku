@@ -12,53 +12,18 @@
 <body>
 <div id="loading" class="center-screen">Loading…</div>
 
-<!-- Login -->
-<div id="loginScreen" class="center-screen hidden">
-	<form id="loginForm" class="card login">
-		<h1 class="appName">Crossdoku</h1>
-		<p class="sub">Crossword clues meet letter sudoku</p>
-		<label for="password">Password</label>
-		<input id="password" type="password" autocomplete="current-password" required>
-		<button type="submit" class="primary">Log in</button>
-		<p id="loginError" class="error"></p>
-	</form>
-</div>
-
 <!-- Game -->
 <div id="gameScreen" class="wrap hidden">
 	<header>
 		<h1 class="appName">Crossdoku</h1>
 		<div class="headerTools">
-			<button id="newBtn" class="primary">New puzzle</button>
 			<button id="printBtn">Print</button>
-			<button id="logoutBtn" class="link">Log out</button>
 		</div>
 	</header>
 
 	<div class="pickerRow">
 		<select id="puzzleSelect" aria-label="Choose a puzzle"></select>
-		<button id="deleteBtn" class="small hidden">Delete</button>
-	</div>
-
-	<div id="newPanel" class="card newPanel hidden">
-		<h2>Make a new puzzle</h2>
-		<div class="field">
-			<span>Level</span>
-			<div class="seg" id="levelSeg">
-				<button data-level="Easy">Easy</button>
-				<button data-level="Medium" class="on">Medium</button>
-				<button data-level="Hard">Hard</button>
-			</div>
-		</div>
-		<div class="field">
-			<label for="theme">Theme (optional)</label>
-			<input id="theme" maxlength="60" placeholder="e.g. chemistry, ocean, robots">
-		</div>
-		<div class="row">
-			<button id="generateBtn" class="primary">Generate</button>
-			<button id="cancelNewBtn">Cancel</button>
-		</div>
-		<p id="genStatus" class="status"></p>
+		<button id="nextBtn" class="small">Next</button>
 	</div>
 
 	<div class="main">
@@ -93,7 +58,7 @@
 	</div>
 </div>
 
-<div class="win" id="win"><div class="card box"><h3>Solved!</h3><p id="winText"></p><button id="winNew" class="primary">New puzzle</button> <button id="winClose">Close</button></div></div>
+<div class="win" id="win"><div class="card box"><h3>Solved!</h3><p id="winText"></p><button id="winNext" class="primary">Next puzzle</button> <button id="winClose">Close</button></div></div>
 
 <script src="js/SuperFetch.js"></script>
 <script src="js/puzzles.js"></script>

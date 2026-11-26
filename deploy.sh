@@ -32,6 +32,12 @@ if [ ! -f .env ]; then
 	exit 1
 fi
 
+echo "==> Puzzle storage"
+# Shared puzzles are saved as JSON files here. The service runs as www-data, so it must own this folder.
+# (If you set DATA_DIR in .env to somewhere else, create and chown that folder yourself.)
+mkdir -p data/puzzles
+chown -R www-data:www-data data
+
 echo "==> Tests"
 "$VENV_NAME/bin/python" -m pytest -q Tests
 

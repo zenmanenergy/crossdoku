@@ -110,3 +110,16 @@ h1 { font-family: Fraunces, serif; font-weight: 800; font-size: 2rem; margin: 0;
 	.clues { columns: 2; }
 	.clues .how { break-inside: avoid; column-span: all; }
 }
+
+/* ---- admin page ---- */
+.adminWrap { max-width: 720px; }
+.backLink { color: var(--ink); font-weight: 600; }
+.listTitle { font-family: Fraunces, serif; font-size: 1.2rem; margin: 18px 0 4px; }
+.small { font-size: .9rem; }
+.adminList { list-style: none; padding: 0; margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+.adminList li.card { padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+.adminList .info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.adminList .words { font-size: .85rem; overflow-wrap: anywhere; }
+.adminList .actions { display: flex; gap: 8px; align-items: center; }
+.adminList .play { font-weight: 700; color: var(--entry); }
+button.danger { background: var(--bad); color: #fff; border-color: var(--bad); }
