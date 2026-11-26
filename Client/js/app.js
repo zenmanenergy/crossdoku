@@ -188,7 +188,6 @@ function Render() {
 	const bad = Clashes();
 	const cur = sel >= 0 ? EntryAt(sel, dir) : null;
 	const curCells = new Set(cur ? cur.cells : []);
-	const peerSet = new Set(sel >= 0 ? PEERS[sel] : []);
 	const starts = {};
 	entries.forEach(e => starts[e.cells[0]] = e.num);
 	const cells = $("board").children;
@@ -198,7 +197,6 @@ function Render() {
 		if (c === 2 || c === 5) cls += " bR";
 		if (r === 2 || r === 5) cls += " bB";
 		if (wc.has(i)) cls += " word";
-		if (peerSet.has(i)) cls += " peer";
 		if (curCells.has(i)) cls += " inword";
 		if (i === sel) cls += " sel";
 		if (givens.has(i)) cls += " given";
