@@ -312,6 +312,8 @@ $("winNext").onclick = () => { $("win").classList.remove("show"); NextPuzzle(); 
 document.addEventListener("keydown", ev => {
 	if (!P || $("gameScreen").classList.contains("hidden")) return;
 	if (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT") return;
+	// Leave browser shortcuts alone (Ctrl+Shift+R, Ctrl+F, Alt+Left, ...).
+	if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
 	const k = ev.key.toUpperCase();
 	if (k.length === 1 && P.letters.includes(k)) { Input(k); ev.preventDefault(); return; }
 	if (ev.key === "Backspace" || ev.key === "Delete") { Erase(); ev.preventDefault(); return; }

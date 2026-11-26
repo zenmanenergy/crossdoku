@@ -10,3 +10,4 @@ Read docs/DesignSpec.md first.
 - Clue text comes from Claude: always insert it with textContent, never innerHTML.
 - Run tests from Server/: python -m pytest Tests
 - Deploy with deploy.sh on the server. Never commit Server/.env.
+- When you change any CSS or JS file, bump the ?v= version on the css/js links in Client/index.html and Client/admin/index.html so browsers fetch the new files.
