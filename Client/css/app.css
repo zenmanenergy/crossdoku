@@ -46,7 +46,7 @@ h1 { font-family: Fraunces, serif; font-weight: 800; font-size: 2rem; margin: 0;
 
 .main { display: grid; grid-template-columns: minmax(0, 480px) 1fr; gap: 20px; align-items: start; }
 @media (max-width: 760px) { .main { grid-template-columns: 1fr; } }
-.board { width: 100%; aspect-ratio: 1; display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); border: 3px solid var(--thick); border-radius: 6px; overflow: hidden; background: var(--thick); gap: 1px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.board { width: 100%; max-width: var(--boardMax, 100%); margin: 0 auto; aspect-ratio: 1; display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); border: 3px solid var(--thick); border-radius: 6px; overflow: hidden; background: var(--thick); gap: 1px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .cell { min-width: 0; min-height: 0; position: relative; background: var(--cell); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: clamp(1.05rem, 5vw, 1.6rem); cursor: pointer; color: var(--entry); }
 .cell.bR { margin-right: 2px; }
 .cell.bB { margin-bottom: 2px; }
@@ -91,6 +91,41 @@ h1 { font-family: Fraunces, serif; font-weight: 800; font-size: 2rem; margin: 0;
 .win .box { padding: 22px 24px; max-width: 340px; text-align: center; }
 .win h3 { font-family: Fraunces, serif; font-size: 1.6rem; margin: 0 0 6px; }
 .printTitle { display: none; }
+
+/* ---- phones ---- */
+/* Stop iOS double-tap zoom when tapping letters quickly. */
+button, .cell, .clues li { touch-action: manipulation; }
+
+/* Portrait phones: compact header, and shrink the board just enough that the
+   board, clue bar, letter keys and tool buttons all fit on one screen. */
+@media (max-width: 760px) and (orientation: portrait) {
+	.wrap { padding: 8px 10px 30px; }
+	header { margin-bottom: 6px; }
+	h1 { font-size: 1.5rem; }
+	header button { padding: 6px 12px; }
+	.pickerRow { margin-bottom: 8px; }
+	.pickerRow select { padding: 7px 8px; }
+	.left { --boardMax: max(260px, calc(100svh - 275px)); }
+	.cluebar { margin: 8px 0; padding: 6px 10px; min-height: 2.8rem; font-size: .95rem; }
+	.keys button { padding: 9px 0; }
+	.tools button { padding: 8px 2px; }
+}
+
+/* Landscape phones: the board fills the screen height on the left; header, picker,
+   clue bar, keys and clue list stack on the right. */
+@media (max-height: 520px) and (orientation: landscape) {
+	.wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: start; grid-auto-flow: row dense; padding: 8px 10px 30px; max-width: none; }
+	.main, .left { display: contents; }
+	.wrap > *, .left > *, .main > * { grid-column: 2; }
+	.left .board { grid-column: 1; grid-row: 1 / span 12; width: calc(100svh - 16px); max-width: none; margin: 0; position: sticky; top: 8px; }
+	header { margin-bottom: 4px; }
+	h1 { font-size: 1.3rem; }
+	header button { padding: 5px 12px; }
+	.pickerRow { margin-bottom: 6px; }
+	.pickerRow select { padding: 5px 8px; }
+	.cluebar { margin: 0 0 8px; padding: 5px 10px; min-height: 2.6rem; }
+	.clues { margin-top: 10px; }
+}
 
 @media print {
 	@page { margin: 1.5cm; }

@@ -111,7 +111,7 @@ function BuildClues() {
 			li.querySelector(".n").textContent = e.num;
 			li.querySelector(".t").textContent = e.clue; // textContent: clues come from Claude, never trust as HTML
 			li.querySelector(".len").textContent = `(${e.word.length})`;
-			li.onclick = () => { dir = d; sel = e.cells.find(c => !state[c]) ?? e.cells[0]; Render(); };
+			li.onclick = () => { dir = d; sel = e.cells.find(c => !state[c]) ?? e.cells[0]; Render(); BringBoardIntoView(); };
 			e.li = li;
 			ol.appendChild(li);
 		});
@@ -127,6 +127,12 @@ function BuildKeys() {
 		b.onclick = () => Input(L);
 		k.appendChild(b);
 	});
+}
+
+// On a phone the clue list sits below the grid; after tapping a clue, scroll back up to the grid.
+function BringBoardIntoView() {
+	const r = $("board").getBoundingClientRect();
+	if (r.top < 0 || r.bottom > window.innerHeight) $("board").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function Tap(i) {
