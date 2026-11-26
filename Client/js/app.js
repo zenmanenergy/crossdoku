@@ -271,7 +271,7 @@ async function Generate() {
 	$("genStatus").textContent = "Claude is picking letters and writing clues, then the server builds the grid. This takes about 30 to 60 seconds.";
 	try {
 		const theme = $("theme").value.trim();
-		const data = await SuperFetch(`/api/puzzles/generate?level=${encodeURIComponent(level)}&theme=${encodeURIComponent(theme)}`);
+		const data = await SuperFetch(`api/puzzles/generate?level=${encodeURIComponent(level)}&theme=${encodeURIComponent(theme)}`);
 		const mine = MyPuzzles();
 		mine.unshift(data.puzzle);
 		store.set("crossdoku-mine", mine.slice(0, 100));
@@ -304,7 +304,7 @@ async function Start() {
 	document.title = APP_NAME;
 	document.querySelectorAll(".appName").forEach(h => h.textContent = APP_NAME);
 	try {
-		const data = await SuperFetch("/api/session");
+		const data = await SuperFetch("api/session");
 		data.loggedIn ? ShowGame() : ShowLogin();
 	} catch (e) {
 		$("loading").textContent = e.message;
@@ -315,14 +315,14 @@ $("loginForm").onsubmit = async ev => {
 	ev.preventDefault();
 	$("loginError").textContent = "";
 	try {
-		await SuperFetch("/api/login", { method: "POST", body: { password: $("password").value } });
+		await SuperFetch("api/login", { method: "POST", body: { password: $("password").value } });
 		$("password").value = "";
 		ShowGame();
 	} catch (e) {
 		$("loginError").textContent = e.message;
 	}
 };
-$("logoutBtn").onclick = async () => { try { await SuperFetch("/api/logout"); } catch (e) { /* ignore */ } ShowLogin(); };
+$("logoutBtn").onclick = async () => { try { await SuperFetch("api/logout"); } catch (e) { /* ignore */ } ShowLogin(); };
 $("newBtn").onclick = () => $("newPanel").classList.toggle("hidden");
 $("cancelNewBtn").onclick = () => $("newPanel").classList.add("hidden");
 $("generateBtn").onclick = Generate;

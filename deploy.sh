@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Crossdoku deploy: run ON the server from the repo folder (e.g. /opt/crossdoku).
+# Crossdoku deploy: run ON the server from the repo folder (/opt/games/crossdoku).
 #   ./deploy.sh
 # nginx serves Client/ straight from this folder, so there is no build or copy step.
 set -euo pipefail
 
 # ---- settings: check these match your server ----
-APP_DIR="/opt/crossdoku"
+APP_DIR="/opt/games/crossdoku"
 BRANCH="main"
 SERVICE="crossdoku"          # systemd unit name (docs/crossdoku.service)
 VENV_NAME="venv"

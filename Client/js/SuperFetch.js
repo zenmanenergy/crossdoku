@@ -1,4 +1,5 @@
 // All client-server requests go through SuperFetch.
+// URLs are relative (api/...), so the app works at a domain root or under a path like /crossdoku/.
 // Returns the parsed JSON on success; throws an Error with the server's message otherwise.
 async function SuperFetch(url, options = {}) {
 	const opts = { credentials: "same-origin", ...options };

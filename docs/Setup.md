@@ -1,29 +1,42 @@
 # First-time setup on the server
 
-1. Point a subdomain (for example crossdoku.secretagents.com) at the server in DNS.
-2. On the server:
+Crossdoku lives at https://games.secretagents.com/crossdoku/ and its code at /opt/games/crossdoku.
+The client uses relative API paths, so it also works at a domain root if that ever changes.
 
-	sudo git clone <your repo url> /opt/crossdoku
-	cd /opt/crossdoku/Server
-	sudo cp .env.example .env
-	sudo nano .env            # set APP_PASSWORD, ANTHROPIC_API_KEY, SECRET_KEY
-	sudo chown root:www-data .env && sudo chmod 640 .env
+1. DNS: add an A record for games.secretagents.com pointing at the server's IP address.
 
-   For SECRET_KEY, any long random string works: python3 -c "import secrets; print(secrets.token_hex(32))"
+2. Clone and configure (as root, which has the GitHub SSH key):
 
-3. Install the service and the nginx site:
+	cd /opt/games
+	git clone git@github.com:zenmanenergy/crossdoku.git crossdoku
+	cd /opt/games/crossdoku/Server
+	cp .env.example .env
+	nano .env            # set APP_PASSWORD, ANTHROPIC_API_KEY, SECRET_KEY
+	chown root:www-data .env
+	chmod 640 .env
 
-	sudo cp /opt/crossdoku/docs/crossdoku.service /etc/systemd/system/
-	sudo systemctl daemon-reload && sudo systemctl enable crossdoku
-	sudo cp /opt/crossdoku/docs/nginx-crossdoku.conf /etc/nginx/sites-available/crossdoku
-	sudo nano /etc/nginx/sites-available/crossdoku     # set server_name
-	sudo ln -s /etc/nginx/sites-available/crossdoku /etc/nginx/sites-enabled/
-	sudo nginx -t && sudo systemctl reload nginx
-	sudo certbot --nginx -d crossdoku.secretagents.com
+   For SECRET_KEY: python3 -c "import secrets; print(secrets.token_hex(32))"
 
-4. Run ./deploy.sh from /opt/crossdoku. It builds the venv, runs the tests, starts the service and checks /api/health.
+3. Service:
 
-After that, every update is: push from your laptop, then ./deploy.sh on the server.
+	cp /opt/games/crossdoku/docs/crossdoku.service /etc/systemd/system/
+	systemctl daemon-reload
+	systemctl enable crossdoku
+
+4. nginx and HTTPS (once DNS has updated: ping games.secretagents.com should show your server's IP):
+
+	cp /opt/games/crossdoku/docs/nginx-games.conf /etc/nginx/sites-available/games
+	ln -s /etc/nginx/sites-available/games /etc/nginx/sites-enabled/
+	nginx -t
+	systemctl reload nginx
+	certbot --nginx -d games.secretagents.com
+
+5. Deploy:
+
+	cd /opt/games/crossdoku
+	bash deploy.sh
+
+After that, every update is: push from your laptop, then bash deploy.sh on the server.
 
 ## Trying it on your laptop (Windows)
 

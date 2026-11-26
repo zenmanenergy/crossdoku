@@ -7,8 +7,8 @@ After=network.target
 
 [Service]
 User=www-data
-WorkingDirectory=/opt/crossdoku/Server
-ExecStart=/opt/crossdoku/Server/venv/bin/gunicorn -w 1 --threads 4 -t 150 -b 127.0.0.1:9010 app:app
+WorkingDirectory=/opt/games/crossdoku/Server
+ExecStart=/opt/games/crossdoku/Server/venv/bin/gunicorn -w 1 --threads 4 -t 150 -b 127.0.0.1:9010 app:app
 Restart=always
 
 [Install]

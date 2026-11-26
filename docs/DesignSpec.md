@@ -15,6 +15,8 @@ A 9x9 letter sudoku where some row and column runs are crossword answers. Solve 
   - Tests/ - generator and route tests (Claude is faked in tests)
 - deploy.sh - pull, install, test, restart, health check.
 
+Hosted at https://games.secretagents.com/crossdoku/ (code in /opt/games/crossdoku). nginx (docs/nginx-games.conf) serves Client/ at /crossdoku/ and proxies /crossdoku/api/ to gunicorn on port 9010. Client API paths are relative so the path prefix needs no code changes.
+
 No database. Generated puzzles and progress live in each browser's localStorage.
 
 ## API
@@ -55,4 +57,3 @@ The game never says a letter is wrong:
 ## Open questions
 
 - Final name (Crossdoku is the working name; change APP_NAME and the title in index.html)
-- Subdomain to host it on
