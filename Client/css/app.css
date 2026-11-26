@@ -1,11 +1,11 @@
 :root {
 	--bg: #f6f1e7; --ink: #1f2430; --muted: #6b6f7a; --line: #c9c1b0; --thick: #1f2430;
-	--cell: #fffdf8; --word: #e8f0ea; --wordon: #bfe0c8; --sel: #ffd66b; --peer: #f3ead6;
+	--cell: #fffdf8; --word: #dcebdf; --wordpeer: #cddfd1; --wordon: #9fd2ad; --sel: #ffd66b; --peer: #f3ead6;
 	--given: #1f2430; --entry: #2456a6; --bad: #d64545; --good: #2f8f55; --card: #fffdf8;
 }
 @media (prefers-color-scheme: dark) {
 	:root { --bg: #16181d; --ink: #ece8df; --muted: #9aa0ab; --line: #3a3e47; --thick: #c9c3b6;
-		--cell: #20232a; --word: #1f3027; --wordon: #2b5a3c; --sel: #8a6d1c; --peer: #272a31;
+		--cell: #20232a; --word: #1f3027; --wordpeer: #263a2e; --wordon: #2f6b45; --sel: #8a6d1c; --peer: #272a31;
 		--given: #ece8df; --entry: #8fb5ff; --bad: #ff7a7a; --good: #6fd394; --card: #20232a; }
 }
 * { box-sizing: border-box; }
@@ -50,10 +50,11 @@ h1 { font-family: Fraunces, serif; font-weight: 800; font-size: 2rem; margin: 0;
 .cell { min-width: 0; min-height: 0; position: relative; background: var(--cell); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: clamp(1.05rem, 5vw, 1.6rem); cursor: pointer; color: var(--entry); }
 .cell.bR { margin-right: 2px; }
 .cell.bB { margin-bottom: 2px; }
+/* Background order matters: answer cells < row/column/box of the selected cell < current answer < selected cell. */
 .cell.word { background: var(--word); }
 .cell.peer { background: var(--peer); }
-.cell.word.peer { background: color-mix(in srgb, var(--word) 60%, var(--peer)); }
-.cell.inword { background: var(--wordon); }
+.cell.word.peer { background: var(--wordpeer); }
+.cell.inword, .cell.word.inword, .cell.word.peer.inword { background: var(--wordon); }
 .cell.sel { background: var(--sel) !important; }
 .cell.given { color: var(--given); font-family: Fraunces, serif; }
 .cell.hinted { color: var(--good); }
@@ -129,7 +130,7 @@ button, .cell, .clues li { touch-action: manipulation; }
 
 @media print {
 	@page { margin: 1.5cm; }
-	:root { --bg: #fff; --ink: #000; --cell: #fff; --word: #d9d9d9; --wordon: #d9d9d9; --peer: #fff; --sel: #fff; --given: #000; --entry: #000; --thick: #000; --muted: #444; --card: #fff; }
+	:root { --bg: #fff; --ink: #000; --cell: #fff; --word: #d9d9d9; --wordpeer: #d9d9d9; --wordon: #d9d9d9; --peer: #fff; --sel: #fff; --given: #000; --entry: #000; --thick: #000; --muted: #444; --card: #fff; }
 	body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	header, .pickerRow, .newPanel, .cluebar, .keys, .tools, .confirm, .status, .win { display: none !important; }
 	.main { grid-template-columns: 1fr; gap: 10px; }
